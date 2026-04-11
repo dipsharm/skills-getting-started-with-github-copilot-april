@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Participants:</strong></p>
+          <ul class="participants-list">
+            ${details.participants.map(email => `<li><span>${email}</span> <button class="delete-btn" onclick="removeParticipant('${name}', '${email}')">×</button></li>`).join('')}
+          </ul>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -62,6 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh the activities list to show the new participant
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -84,3 +90,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize app
   fetchActivities();
 });
+
+// Function to remove a participant
+async function removeParticipant(activity, email) {
+  try {
+    const response = await fetch(
+      `/activities/${encodeURIComponent(activity)}/participants/${encodeURIComponent(email)}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Refresh the activities list
+      fetchActivities();
+    } else {
+      console.error("Error removing participant:", result.detail || "An error occurred");
+    }
+  } catch (error) {
+    console.error("Error removing participant:", error);
+  }
+}
